@@ -2,8 +2,10 @@
   "name": "ai-resume-analyzer",
   "version": "1.0.0",
   "description": "AI-based resume analysis tool that parses resumes, analyzes skills and content, and generates smart suggestions to improve ATS compatibility and overall quality.",
-  "main": "index.js",
+  "main": "backend/server.js",
   "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
