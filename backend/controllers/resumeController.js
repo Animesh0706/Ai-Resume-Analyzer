@@ -1,3 +1,4 @@
+const pdfParse = require("pdf-parse");
 const Resume = require("../models/Resume");
 const analyzeResume = require("../services/aiService");
 
@@ -9,10 +10,8 @@ exports.analyzeResume = async (req, res) => {
       return res.status(400).json({ error: "Resume text required" });
     }
 
-    // AI Analysis
     const analysis = await analyzeResume(resumeText);
 
-    // Save in DB
     const newResume = await Resume.create({
       user: req.user.userId,
       resumeText,
@@ -20,6 +19,7 @@ exports.analyzeResume = async (req, res) => {
     });
 
     res.json({
+      success: true,
       message: "Analysis saved",
       data: newResume
     });
@@ -29,10 +29,39 @@ exports.analyzeResume = async (req, res) => {
   }
 };
 
-// Get history
-exports.getHistory = async (req, res) => {
-  const history = await Resume.find({ user: req.user.userId })
-    .sort({ createdAt: -1 });
+exports.analyzeResumeFromFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
 
-  res.json(history);
+    const data = await pdfParse(req.file.buffer);
+    const resumeText = data.text;
+
+    const analysis = await analyzeResume(resumeText);
+
+    const newResume = await Resume.create({
+      user: req.user.userId,
+      resumeText,
+      analysis
+    });
+
+    res.json({
+      success: true,
+      message: "File analyzed successfully",
+      data: newResume
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getHistory = async (req, res) => {
+  try {
+    const history = await Resume.find({ user: req.user.userId }).sort({ createdAt: -1 });
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
