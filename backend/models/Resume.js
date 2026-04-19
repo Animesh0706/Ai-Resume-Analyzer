@@ -15,6 +15,7 @@ const resumeSchema = new mongoose.Schema({
     index: true,
   },
   resumeText: String,
+  fileName: String,
   analysis: {
     skills: [String],
     scoreBreakdown: {
@@ -26,7 +27,29 @@ const resumeSchema = new mongoose.Schema({
     },
     deduction: Number,
     score: Number,
-    suggestions: [String],
+    suggestions: [{
+      title: String,
+      description: String
+    }],
+    keyStrengths: [{
+      title: String,
+      description: String
+    }],
+    keywordMetrics: {
+      optimizationDensity: Number,
+      hardSkillsFocus: [{
+        category: String,
+        density: Number
+      }],
+      identifiedKeywords: [{
+        keyword: String,
+        density: Number
+      }],
+      criticalOmissions: [{
+        keyword: String,
+        description: String
+      }]
+    }
   }
 }, { timestamps: true });
 

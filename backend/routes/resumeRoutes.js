@@ -6,7 +6,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const {
   analyzeResume,
   analyzeResumeFromFile,
-  getHistory
+  getHistory,
+  getResumeById
 } = require("../controllers/resumeController");
 
 router.post(
@@ -18,5 +19,6 @@ router.post(
 
 router.post("/analyze", authMiddleware, analyzeResume);
 router.get("/history", authMiddleware, getHistory);
+router.get("/:id", authMiddleware, getResumeById);
 
 module.exports = router;

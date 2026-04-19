@@ -12,11 +12,26 @@ const normalizeAnalysis = (rawAnalysis = {}) => {
     : [];
 
   const safeSuggestions = Array.isArray(rawAnalysis.suggestions)
-    ? rawAnalysis.suggestions
-        .map((suggestion) => String(suggestion).trim())
-        .filter(Boolean)
-        .slice(0, 8)
+    ? rawAnalysis.suggestions.map(s => ({
+        title: s.title || "Improvement",
+        description: s.description || ""
+      })).slice(0, 5)
     : [];
+
+  const safeKeyStrengths = Array.isArray(rawAnalysis.keyStrengths)
+    ? rawAnalysis.keyStrengths.map(s => ({
+        title: s.title || "Strength",
+        description: s.description || ""
+      })).slice(0, 5)
+    : [];
+
+  const km = rawAnalysis.keywordMetrics || {};
+  const safeKeywordMetrics = {
+    optimizationDensity: Math.max(0, Math.min(100, Number(km.optimizationDensity) || 0)),
+    hardSkillsFocus: Array.isArray(km.hardSkillsFocus) ? km.hardSkillsFocus.slice(0, 5) : [],
+    identifiedKeywords: Array.isArray(km.identifiedKeywords) ? km.identifiedKeywords.slice(0, 10) : [],
+    criticalOmissions: Array.isArray(km.criticalOmissions) ? km.criticalOmissions.slice(0, 5) : []
+  };
 
   const breakdown = rawAnalysis.scoreBreakdown || {};
   const formatting = Number(breakdown.formatting) || 0;
@@ -51,7 +66,9 @@ const normalizeAnalysis = (rawAnalysis = {}) => {
     scoreBreakdown: safeBreakdown,
     deduction: safeDeduction,
     score: boundedScore,
-    suggestions: safeSuggestions
+    suggestions: safeSuggestions,
+    keyStrengths: safeKeyStrengths,
+    keywordMetrics: safeKeywordMetrics
   };
 };
 
@@ -75,7 +92,7 @@ Return valid JSON only.`
           role: "user",
           content: `Return ONLY JSON:
           {
-            "skills": [],
+            "skills": ["string"],
             "scoreBreakdown": {
               "formatting": number,
               "contentQuality": number,
@@ -85,7 +102,14 @@ Return valid JSON only.`
             },
             "deduction": number,
             "score": number,
-            "suggestions": []
+            "suggestions": [{"title": "string", "description": "string"}],
+            "keyStrengths": [{"title": "string", "description": "string"}],
+            "keywordMetrics": {
+              "optimizationDensity": number,
+              "hardSkillsFocus": [{"category": "string", "density": number}],
+              "identifiedKeywords": [{"keyword": "string", "density": number}],
+              "criticalOmissions": [{"keyword": "string", "description": "string"}]
+            }
           }
 
           Use this strict scoring rubric:
@@ -115,14 +139,14 @@ Return valid JSON only.`
 
           Additional rules:
           - Calculate "score" as the sum of the five category scores minus deduction.
-          - Do not inflate scores to be nice.
-          - If there are no quantified achievements, the impact score should usually stay below 10.
-          - If the resume is generic or thin, keep the total score below 70.
-          - If formatting/content is merely acceptable, do not award near-maximum points.
-          - Suggestions must be specific, actionable, and based on actual weaknesses in the resume.
+          - Suggestions must be specific, actionable areas with a clear title and description.
+          - Key Strengths should highlight the candidate's core narrative strengths.
+          - keywordMetrics.optimizationDensity should be a percentage calculation of resonant keywords.
+          - hardSkillsFocus should categorize main skills (e.g., Architecture, Leadership) with a density out of 100.
+          - criticalOmissions should suggest missing industry keywords that would elevate this resume.
 
           Resume:
-          ${resumeText}`
+          \${resumeText}`
         }
       ],
       temperature: 0

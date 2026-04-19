@@ -89,6 +89,7 @@ exports.analyzeResumeFromFile = async (req, res) => {
       contentHash,
       analysisVersion: ANALYSIS_VERSION,
       resumeText: normalizedText,
+      fileName: req.file.originalname,
       analysis
     });
 
@@ -112,6 +113,18 @@ exports.getHistory = async (req, res) => {
   try {
     const history = await Resume.find({ user: req.user.userId }).sort({ createdAt: -1 });
     res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getResumeById = async (req, res) => {
+  try {
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.user.userId });
+    if (!resume) {
+      return res.status(404).json({ error: "Resume not found" });
+    }
+    res.json(resume);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

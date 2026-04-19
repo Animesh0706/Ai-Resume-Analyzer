@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bgPrimary text-textPrimary font-sans antialiased min-h-screen text-[15px];
+  }
+}
+
+@layer components {
+  /* Retaining some complex utility abstractions to avoid overly massive class strings */
+  .glass-panel {
+    @apply bg-[rgba(36,36,36,0.7)] backdrop-blur-[12px] border border-white/5 rounded-2xl;
+  }
+  
+  .glass-panel-dark {
+    @apply bg-[rgba(20,20,20,0.7)] backdrop-blur-[12px] border border-white/5 rounded-2xl;
+  }
+  
+  .glass-pill {
+    @apply bg-[rgba(30,30,30,0.6)] rounded-lg px-4 py-2 border border-white/5;
+  }
+  
+  .button-primary {
+    @apply bg-primaryButton text-primaryButtonText font-semibold px-6 py-3 rounded-lg border-none cursor-pointer transition-all duration-200 inline-flex items-center justify-center gap-2 font-sans hover:bg-[#d3e3fd] hover:-translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .button-secondary {
+    @apply bg-white/10 text-textPrimary font-medium px-4 py-2 rounded-md border border-white/10 cursor-pointer transition-all duration-200 inline-flex items-center gap-2 hover:bg-white/15;
+  }
+
+  .badge {
+    @apply bg-[rgba(168,199,250,0.15)] text-primaryAccent px-2 py-1 rounded text-xs font-semibold uppercase tracking-[0.05em];
+  }
+
+  .small-caps {
+    @apply text-[10px] uppercase tracking-widest font-semibold;
+  }
+}
+
+/* Animations that are highly custom */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-bgPrimary;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-[#444] rounded;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-[#555];
+}
