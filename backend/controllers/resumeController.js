@@ -8,6 +8,12 @@ const {
 
 const ANALYSIS_VERSION = analyzeResume.ANALYSIS_VERSION || 1;
 
+const hasInsightContent = (analysis = {}) =>
+  Array.isArray(analysis.keyStrengths) &&
+  analysis.keyStrengths.length > 0 &&
+  Array.isArray(analysis.suggestions) &&
+  analysis.suggestions.length > 0;
+
 const findExistingAnalysis = async (resumeText) => {
   const normalizedText = normalizeResumeText(resumeText);
   const contentHash = createContentHash(normalizedText);
@@ -38,7 +44,9 @@ exports.analyzeResume = async (req, res) => {
       existingAnalysis
     } = await findExistingAnalysis(resumeText);
 
-    const analysis = existingAnalysis || await analyzeResume(normalizedText);
+    const analysis = existingAnalysis && hasInsightContent(existingAnalysis)
+      ? existingAnalysis
+      : await analyzeResume(normalizedText);
 
     const newResume = await Resume.create({
       user: req.user.userId,
@@ -51,7 +59,7 @@ exports.analyzeResume = async (req, res) => {
     res.json({
       success: true,
       message: "Analysis saved",
-      analysisSource: existingAnalysis ? "cached" : "generated",
+      analysisSource: existingAnalysis && hasInsightContent(existingAnalysis) ? "cached" : "generated",
       data: newResume
     });
 
@@ -82,7 +90,9 @@ exports.analyzeResumeFromFile = async (req, res) => {
       existingAnalysis
     } = await findExistingAnalysis(resumeText);
 
-    const analysis = existingAnalysis || await analyzeResume(normalizedText);
+    const analysis = existingAnalysis && hasInsightContent(existingAnalysis)
+      ? existingAnalysis
+      : await analyzeResume(normalizedText);
 
     const newResume = await Resume.create({
       user: req.user.userId,
@@ -96,7 +106,7 @@ exports.analyzeResumeFromFile = async (req, res) => {
     res.json({
       success: true,
       message: "File analyzed successfully",
-      analysisSource: existingAnalysis ? "cached" : "generated",
+      analysisSource: existingAnalysis && hasInsightContent(existingAnalysis) ? "cached" : "generated",
       data: newResume
     });
 

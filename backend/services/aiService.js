@@ -1,7 +1,96 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const ANALYSIS_VERSION = 1;
+const ANALYSIS_VERSION = 2;
+
+const asTrimmedString = (value) => String(value || "").trim();
+
+const normalizeInsightItems = (items, fallbackTitle) => {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const text = asTrimmedString(item);
+        if (!text) return null;
+        return {
+          title: `${fallbackTitle} ${index + 1}`,
+          description: text
+        };
+      }
+
+      if (!item || typeof item !== "object") return null;
+
+      const title = asTrimmedString(
+        item.title || item.heading || item.name || item.label
+      );
+      const description = asTrimmedString(
+        item.description || item.detail || item.summary || item.reason || item.value
+      );
+
+      if (!title && !description) return null;
+
+      return {
+        title: title || `${fallbackTitle} ${index + 1}`,
+        description
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+};
+
+const normalizeMetricItems = (items, keyField, valueField) => {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+
+      const key = asTrimmedString(
+        item[keyField] || item.term || item.keyword || item.category || item.name
+      );
+      const value = Number(
+        item[valueField] || item.density || item.relevance || item.score
+      );
+
+      if (!key) return null;
+
+      return {
+        [keyField]: key,
+        [valueField]: Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0
+      };
+    })
+    .filter(Boolean);
+};
+
+const normalizeOmissions = (items) => {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item) => {
+      if (typeof item === "string") {
+        const keyword = asTrimmedString(item);
+        if (!keyword) return null;
+        return { keyword, description: "" };
+      }
+
+      if (!item || typeof item !== "object") return null;
+
+      const keyword = asTrimmedString(item.keyword || item.term || item.name);
+      const description = asTrimmedString(
+        item.description || item.detail || item.reason
+      );
+
+      if (!keyword && !description) return null;
+
+      return {
+        keyword: keyword || "Missing Keyword",
+        description
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+};
 
 const normalizeAnalysis = (rawAnalysis = {}) => {
   const safeSkills = Array.isArray(rawAnalysis.skills)
@@ -11,26 +100,30 @@ const normalizeAnalysis = (rawAnalysis = {}) => {
         .slice(0, 15)
     : [];
 
-  const safeSuggestions = Array.isArray(rawAnalysis.suggestions)
-    ? rawAnalysis.suggestions.map(s => ({
-        title: s.title || "Improvement",
-        description: s.description || ""
-      })).slice(0, 5)
-    : [];
+  const safeSuggestions = normalizeInsightItems(
+    rawAnalysis.suggestions || rawAnalysis.refinementAreas || rawAnalysis.improvements,
+    "Improvement"
+  );
 
-  const safeKeyStrengths = Array.isArray(rawAnalysis.keyStrengths)
-    ? rawAnalysis.keyStrengths.map(s => ({
-        title: s.title || "Strength",
-        description: s.description || ""
-      })).slice(0, 5)
-    : [];
+  const safeKeyStrengths = normalizeInsightItems(
+    rawAnalysis.keyStrengths || rawAnalysis.strengths || rawAnalysis.highlights,
+    "Strength"
+  );
 
-  const km = rawAnalysis.keywordMetrics || {};
+  const km = rawAnalysis.keywordMetrics || rawAnalysis.keywords || {};
   const safeKeywordMetrics = {
     optimizationDensity: Math.max(0, Math.min(100, Number(km.optimizationDensity) || 0)),
-    hardSkillsFocus: Array.isArray(km.hardSkillsFocus) ? km.hardSkillsFocus.slice(0, 5) : [],
-    identifiedKeywords: Array.isArray(km.identifiedKeywords) ? km.identifiedKeywords.slice(0, 10) : [],
-    criticalOmissions: Array.isArray(km.criticalOmissions) ? km.criticalOmissions.slice(0, 5) : []
+    hardSkillsFocus: normalizeMetricItems(
+      km.hardSkillsFocus || km.skillCategories,
+      "category",
+      "density"
+    ).slice(0, 5),
+    identifiedKeywords: normalizeMetricItems(
+      km.identifiedKeywords || km.topKeywords,
+      "keyword",
+      "density"
+    ).slice(0, 10),
+    criticalOmissions: normalizeOmissions(km.criticalOmissions || km.missingKeywords)
   };
 
   const breakdown = rawAnalysis.scoreBreakdown || {};
@@ -139,8 +232,9 @@ Return valid JSON only.`
 
           Additional rules:
           - Calculate "score" as the sum of the five category scores minus deduction.
+          - Always return at least 3 suggestions and at least 3 keyStrengths unless the resume text is almost empty.
           - Suggestions must be specific, actionable areas with a clear title and description.
-          - Key Strengths should highlight the candidate's core narrative strengths.
+          - Key Strengths should highlight the candidate's core narrative strengths and each item must include both title and description.
           - keywordMetrics.optimizationDensity should be a percentage calculation of resonant keywords.
           - hardSkillsFocus should categorize main skills (e.g., Architecture, Leadership) with a density out of 100.
           - criticalOmissions should suggest missing industry keywords that would elevate this resume.

@@ -42,12 +42,14 @@ const KeywordLab = () => {
   if (loading) return <div className="text-center p-10 font-serif italic text-textSecondary">Consulting the archives...</div>;
   if (!data) return <div className="text-center p-10 font-serif italic text-[#ff6b6b]">No data available.</div>;
 
-  const metrics = data.keywordMetrics || {
+  const metrics = data.analysis?.keywordMetrics || data.keywordMetrics || {
     optimizationDensity: 0,
-    hardSkillsFocus: 0,
+    hardSkillsFocus: [],
     identifiedKeywords: [],
     criticalOmissions: []
   };
+
+  const topSkillFocus = metrics.hardSkillsFocus?.slice(0, 2) || [];
 
   return (
     <div className="w-full max-w-[1000px] mx-auto flex flex-col gap-10 animate-fade-in">
@@ -76,21 +78,28 @@ const KeywordLab = () => {
 
         <div className="glass-panel p-8 flex flex-col items-center justify-center">
             <div className="small-caps text-textSecondary mb-6">Hard Skills Focus</div>
-            <div className="text-5xl font-serif font-bold mb-8">{metrics.hardSkillsFocus} <span className="text-xl text-textSecondary font-sans font-normal">pts</span></div>
+            <div className="text-5xl font-serif font-bold mb-8">
+              {topSkillFocus[0]?.density || 0} <span className="text-xl text-textSecondary font-sans font-normal">pts</span>
+            </div>
             
             <div className="w-full flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between text-xs text-textSecondary"><span>Technical</span><span>80%</span></div>
-                <div className="w-full h-1 bg-white/10 rounded-sm overflow-hidden">
-                  <div className="h-full bg-primaryAccent rounded-sm w-[80%]"></div>
+              {topSkillFocus.map((skill) => (
+                <div key={skill.category} className="flex flex-col gap-2">
+                  <div className="flex justify-between text-xs text-textSecondary">
+                    <span>{skill.category}</span>
+                    <span>{skill.density}%</span>
+                  </div>
+                  <div className="w-full h-1 bg-white/10 rounded-sm overflow-hidden">
+                    <div
+                      className="h-full bg-primaryAccent rounded-sm"
+                      style={{ width: `${skill.density}%` }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between text-xs text-textSecondary"><span>Leadership</span><span>45%</span></div>
-                <div className="w-full h-1 bg-white/10 rounded-sm overflow-hidden">
-                  <div className="h-full bg-primaryAccent rounded-sm w-[45%]"></div>
-                </div>
-              </div>
+              ))}
+              {topSkillFocus.length === 0 && (
+                <p className="text-[13px] text-textSecondary italic">No hard-skill focus data available.</p>
+              )}
             </div>
         </div>
       </div>
@@ -105,8 +114,8 @@ const KeywordLab = () => {
             <div className="flex flex-wrap gap-3">
                {metrics.identifiedKeywords.map((kw, i) => (
                  <div key={i} className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 bg-black/40 shadow-sm border border-white/5">
-                   {kw.term}
-                   <span className="text-primaryAccent text-[11px] font-bold">{kw.relevance}%</span>
+                   {kw.keyword}
+                   <span className="text-primaryAccent text-[11px] font-bold">{kw.density}%</span>
                  </div>
                ))}
                {metrics.identifiedKeywords.length === 0 && <p className="text-[13px] text-textSecondary italic">No strong assets identified.</p>}
@@ -122,7 +131,7 @@ const KeywordLab = () => {
             <div className="flex flex-col gap-3">
                {metrics.criticalOmissions.map((om, i) => (
                  <div key={i} className="p-4 rounded-lg bg-black/40 border-l-2 border-[#ff6b6b] flex justify-between items-center shadow-sm">
-                   <div className="text-[15px] font-semibold text-white/90">{om}</div>
+                   <div className="text-[15px] font-semibold text-white/90">{om.keyword}</div>
                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center font-light text-textSecondary text-lg cursor-pointer hover:bg-white/10 hover:text-white transition-colors">+</div>
                  </div>
                ))}

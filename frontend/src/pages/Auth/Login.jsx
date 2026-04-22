@@ -33,10 +33,10 @@ const Login = () => {
       
       <div className="relative z-10 w-full max-w-[480px] flex flex-col gap-8 animate-fade-in">
         <div className="flex flex-col items-center text-center">
-           <div className="text-[10px] uppercase tracking-widest font-semibold text-primaryAccent flex items-center gap-2 mb-4">
+           {/* <div className="text-[10px] uppercase tracking-widest font-semibold text-primaryAccent flex items-center gap-2 mb-4">
              <span className="w-6 h-[2px] bg-primaryAccent"></span>
              ACCESS PORTAL
-           </div>
+           </div> */}
            <h1 className="font-serif font-bold text-[48px] leading-[1.2]">
              Welcome Back,<br/>
              <span className="italic text-primaryAccent">Curator</span>
@@ -99,7 +99,7 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="text-center mt-6">
+        <div className="text-center mt-3">
           <p className="font-serif italic text-sm leading-relaxed">
             "The curriculum vitae is more than a list; it is the curated narrative of one's professional soul."
           </p>

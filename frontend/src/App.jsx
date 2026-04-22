@@ -9,6 +9,8 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext } from 'react';
+import { useLocation } from 'react-router-dom';
+
 const DashboardLayout = () => {
   return (
     <div className="flex min-h-screen">
@@ -20,11 +22,11 @@ const DashboardLayout = () => {
   );
 };
 
-// Extracted sidebar wrapper to get access to route params
+// Extracted sidebar wrapper to get access to route params reactively
 const SidebarWithParams = () => {
-  const params = typeof window !== 'undefined' ? window.location.pathname.split('/') : [];
+  const location = useLocation();
+  const params = location.pathname.split('/');
   const idMatch = params.length > 2 ? params[2] : null; 
-  // Very simplistic id grabber, ideally we use react-router hooks or state management
   return <Sidebar id={idMatch} />;
 };
 

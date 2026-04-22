@@ -67,9 +67,9 @@ const LandingPage = () => {
       <div className="mb-4">
         <div className="badge inline-block mb-4">Alexandria Intelligence</div>
         <h1 className="font-serif text-[64px] font-bold leading-[1.1] mb-6">
-          Refine your<br/>
-          <span className="italic text-[#a8c7fa]">professional</span><br/>
-          narrative.
+          Refine your
+          <span className="italic text-[#a8c7fa]"> professional </span>
+           narrative.
         </h1>
         <p className="text-textSecondary text-lg max-w-2xl leading-relaxed">
           Move beyond simple text matching. Our neural engine dissects the semantic strength of your experience to align with elite roles.
